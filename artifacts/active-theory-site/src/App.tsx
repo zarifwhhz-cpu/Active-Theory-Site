@@ -8,6 +8,7 @@ import Home from "@/pages/Home";
 import NotFound from "@/pages/not-found";
 import { CustomCursor } from "@/components/CustomCursor";
 import { Navbar } from "@/components/Navbar";
+import { BackgroundAnimation } from "@/components/BackgroundAnimation";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -32,6 +33,7 @@ function App() {
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
         <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, "")}>
+          <BackgroundAnimation />
           <div className="bg-noise" />
           <CustomCursor />
           <Navbar />

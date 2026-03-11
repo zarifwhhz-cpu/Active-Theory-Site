@@ -8,7 +8,7 @@ import { Footer } from "@/components/Footer";
 
 export default function Home() {
   return (
-    <main className="w-full min-h-screen bg-black text-white selection:bg-white selection:text-black">
+    <main className="relative w-full min-h-screen bg-transparent text-white selection:bg-white selection:text-black" style={{ zIndex: 1 }}>
       <Hero />
       <WorkGrid />
       <About />
