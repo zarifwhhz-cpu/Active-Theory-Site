@@ -1,0 +1,64 @@
+Uri: https://activetheory.net/
+File Name: C:\Downloaded Web Sites\activetheory.net\index.htm
+Content Type: text/html
+
+Uri: https://activetheory.net/assets/fonts/NBArchitektStd-Bold-export/NBArchitektStd-Bold.otf
+File Name: C:\Downloaded Web Sites\activetheory.net\assets\fonts\NBArchitektStd-Bold-export\NBArchitektStd-Bold.otf
+Content Type: font/otf
+
+Uri: https://activetheory.net/assets/fonts/NBArchitektStd-Bold-export/NBArchitektStd-Bold.woff
+File Name: C:\Downloaded Web Sites\activetheory.net\assets\fonts\NBArchitektStd-Bold-export\NBArchitektStd-Bold.woff
+Content Type: font/woff
+
+Uri: https://activetheory.net/assets/fonts/NBArchitektStd-Bold-export/NBArchitektStd-Bold.woff2
+File Name: C:\Downloaded Web Sites\activetheory.net\assets\fonts\NBArchitektStd-Bold-export\NBArchitektStd-Bold.woff2
+Content Type: font/woff2
+
+Uri: https://activetheory.net/assets/fonts/NBArchitektStd-Light-export/NBArchitektStd-Light.otf
+File Name: C:\Downloaded Web Sites\activetheory.net\assets\fonts\NBArchitektStd-Light-export\NBArchitektStd-Light.otf
+Content Type: font/otf
+
+Uri: https://activetheory.net/assets/fonts/NBArchitektStd-Light-export/NBArchitektStd-Light.woff
+File Name: C:\Downloaded Web Sites\activetheory.net\assets\fonts\NBArchitektStd-Light-export\NBArchitektStd-Light.woff
+Content Type: font/woff
+
+Uri: https://activetheory.net/assets/fonts/NBArchitektStd-Light-export/NBArchitektStd-Light.woff2
+File Name: C:\Downloaded Web Sites\activetheory.net\assets\fonts\NBArchitektStd-Light-export\NBArchitektStd-Light.woff2
+Content Type: font/woff2
+
+Uri: https://activetheory.net/assets/fonts/NBArchitektStd-Regular-export/NBArchitektStd-Regular.otf
+File Name: C:\Downloaded Web Sites\activetheory.net\assets\fonts\NBArchitektStd-Regular-export\NBArchitektStd-Regular.otf
+Content Type: font/otf
+
+Uri: https://activetheory.net/assets/fonts/NBArchitektStd-Regular-export/NBArchitektStd-Regular.woff
+File Name: C:\Downloaded Web Sites\activetheory.net\assets\fonts\NBArchitektStd-Regular-export\NBArchitektStd-Regular.woff
+Content Type: font/woff
+
+Uri: https://activetheory.net/assets/fonts/NBArchitektStd-Regular-export/NBArchitektStd-Regular.woff2
+File Name: C:\Downloaded Web Sites\activetheory.net\assets\fonts\NBArchitektStd-Regular-export\NBArchitektStd-Regular.woff2
+Content Type: font/woff2
+
+Uri: https://activetheory.net/assets/meta/apple-touch-icon.png
+File Name: C:\Downloaded Web Sites\activetheory.net\assets\meta\apple-touch-icon.png
+Content Type: image/png
+
+Uri: https://activetheory.net/assets/meta/favicon-16x16.png
+File Name: C:\Downloaded Web Sites\activetheory.net\assets\meta\favicon-16x16.png
+Content Type: image/png
+
+Uri: https://activetheory.net/assets/meta/favicon-32x32.png
+File Name: C:\Downloaded Web Sites\activetheory.net\assets\meta\favicon-32x32.png
+Content Type: image/png
+
+Uri: https://activetheory.net/assets/meta/manifest.json
+File Name: C:\Downloaded Web Sites\activetheory.net\assets\meta\manifest.json
+Content Type: application/json
+
+Uri: https://activetheory.net/assets/meta/safari-pinned-tab.svg
+File Name: C:\Downloaded Web Sites\activetheory.net\assets\meta\safari-pinned-tab.svg.html
+Content Type: text/html
+
+Uri: https://www.googletagmanager.com/gtag/js?id=G-J7TMDT4F8N
+File Name: C:\Downloaded Web Sites\activetheory.net\gtag\js
+Content Type: application/javascript
+
