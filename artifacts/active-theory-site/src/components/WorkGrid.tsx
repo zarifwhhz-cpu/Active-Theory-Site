@@ -1,13 +1,21 @@
 import { motion } from "framer-motion";
-import { useProjects } from "@/hooks/use-projects";
+import { useContent, useSetting } from "@/hooks/use-content";
 
 export function WorkGrid() {
-  const { data: projects, isLoading } = useProjects();
+  const { data, isLoading } = useContent();
+  const eyebrow = useSetting("works_eyebrow", "01");
+  const title = useSetting("works_title", "Selected Works");
+  const projects = data?.projects ?? [];
 
-  if (isLoading) {
+  if (isLoading && projects.length === 0) {
     return (
-      <section id="work" className="min-h-screen w-full flex items-center justify-center border-t border-white/10">
-        <div className="text-white/50 text-sm uppercase tracking-widest animate-pulse">Loading Archive...</div>
+      <section
+        id="work"
+        className="min-h-screen w-full flex items-center justify-center border-t border-white/10"
+      >
+        <div className="text-white/50 text-sm uppercase tracking-widest animate-pulse">
+          Loading Archive...
+        </div>
       </section>
     );
   }
@@ -15,19 +23,19 @@ export function WorkGrid() {
   return (
     <section id="work" className="w-full border-t border-white/10">
       <div className="px-6 md:px-12 py-24">
-        <motion.h2 
+        <motion.h2
           initial={{ opacity: 0, y: 50 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, margin: "-100px" }}
           transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
           className="text-2xl md:text-4xl font-light uppercase tracking-tight mb-16"
         >
-          <sup className="text-xs mr-2 opacity-50">01</sup> Selected Works
+          <sup className="text-xs mr-2 opacity-50">{eyebrow}</sup> {title}
         </motion.h2>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-px bg-white/10 border-y border-white/10">
-        {projects?.map((project, i) => (
+        {projects.map((project, i) => (
           <motion.div
             key={project.id}
             initial={{ opacity: 0 }}
@@ -39,15 +47,17 @@ export function WorkGrid() {
           >
             {/* Background Image Reveal */}
             <div className="absolute inset-0 z-0">
-              <img 
-                src={project.imageUrl} 
+              <img
+                src={project.imageUrl}
                 alt={project.title}
                 className="w-full h-full object-cover opacity-0 group-hover:opacity-40 transition-opacity duration-700 ease-out grayscale group-hover:grayscale-0"
               />
             </div>
-            
+
             {/* Color Accent Overlay */}
-            <div className={`absolute inset-0 opacity-0 group-hover:opacity-60 transition-opacity duration-700 ease-out mix-blend-multiply ${project.accentColor}`} />
+            <div
+              className={`absolute inset-0 opacity-0 group-hover:opacity-60 transition-opacity duration-700 ease-out mix-blend-multiply ${project.accentColor}`}
+            />
 
             <div className="relative z-10 flex justify-between items-start">
               <span className="text-xs md:text-sm tracking-widest uppercase opacity-50 group-hover:opacity-100 transition-opacity">
@@ -63,7 +73,7 @@ export function WorkGrid() {
                 {project.title}
               </h3>
             </div>
-            
+
             {/* Minimal line indicator */}
             <div className="absolute bottom-0 left-0 w-full h-1 bg-white scale-x-0 group-hover:scale-x-100 origin-left transition-transform duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] z-10" />
           </motion.div>

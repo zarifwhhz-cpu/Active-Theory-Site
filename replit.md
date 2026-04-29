@@ -94,3 +94,34 @@ Generated React Query hooks and fetch client from the OpenAPI spec (e.g. `useHea
 ### `scripts` (`@workspace/scripts`)
 
 Utility scripts package. Each script is a `.ts` file in `src/` with a corresponding npm script in `package.json`. Run scripts via `pnpm --filter @workspace/scripts run <script>`. Scripts can import any workspace package (e.g., `@workspace/db`) by adding it as a dependency in `scripts/package.json`.
+
+- `seed-cms` — populates the CMS tables (`siteSettings`, `projects`, `services`, `awards`, `socialLinks`) with the original Active Theory copy. Re-run safely; uses upsert/idempotent inserts.
+
+### `artifacts/active-theory-site` (`@workspace/active-theory-site`)
+
+React + Vite single-page app — the Active Theory marketing site **plus** an in-app admin CMS at `/admin/*`.
+
+**Public site** (`src/components/*`): Hero, About, Services, Marquee, WorkGrid, Contact, Footer, Navbar. All copy is fetched from `GET /api/content` via the `useContent()` / `useSetting(key)` hooks (`src/hooks/use-content.ts`). No hardcoded marketing strings.
+
+**Admin** (`src/pages/admin/*`):
+- `Login.tsx` — single-password sign-in (POST `/api/auth/login`)
+- `AdminLayout.tsx` — sidebar nav, auth gate (redirects to `/admin/login` if not signed in), sign-out
+- `Dashboard.tsx` — counts + tile links to each editor
+- `Settings.tsx` — grouped textarea/input editor for all `siteSettings` keys (PUT `/api/admin/settings`)
+- `Projects.tsx`, `Services.tsx`, `Awards.tsx`, `SocialLinks.tsx` — list editors built on the shared `ListEditor` (CRUD against `/api/admin/<resource>`)
+
+**API client** (`src/lib/api.ts`): typed fetch wrapper with `credentials: include` so the JWT cookie is sent. React Query manages caching and invalidation; admin mutations invalidate the public `["content"]` query so the live site updates immediately.
+
+### CMS / Admin auth
+
+- Tables: `site_settings` (key/value, HTML allowed in `about_paragraph`), `projects`, `services`, `awards`, `social_links` (all with `sort_order`).
+- Validation lives in each schema file as plain `z.object(...)` (do **not** use `drizzle-zod`'s field customizer — current version of `drizzle-zod` is incompatible with the installed Zod and produces invalid schemas at runtime).
+- Auth: `ADMIN_PASSWORD` (single admin) + `SESSION_SECRET` (HMAC for the JWT). Implemented in `artifacts/api-server/src/lib/auth.ts`.
+  - `POST /api/auth/login` — constant-time password compare via `crypto.timingSafeEqual` over SHA-256 hashes of both inputs (equal-length buffers, no early-exit on length). Sets `at_admin` HTTP-only signed JWT cookie (7-day TTL). Throttled to 10 attempts / 15 min per IP via `express-rate-limit`.
+  - `POST /api/auth/logout` — clears the cookie.
+  - `GET /api/auth/me` — returns `{authenticated: boolean}`.
+  - `requireAdmin` middleware guards all `/api/admin/*` routes.
+  - `sameOriginGuard` middleware (in `routes/index.ts`) enforces an Origin/Referer == Host check on every non-safe HTTP method against `/auth/*` and `/admin/*`. Combined with the `SameSite=Lax` cookie this blocks CSRF.
+- HTML in settings: `about_paragraph` is the only key allowed to contain HTML. On write, the API runs the value through `sanitize-html` with an allowlist of `<strong>`, `<em>`, `<br>` only — script tags, event handlers, and other tags are stripped server-side, so a stored XSS is not possible even if the admin pastes one.
+- Public read endpoint: `GET /api/content` returns `{settings, projects, services, awards, socialLinks}` in one call.
+- Admin write endpoints: `PUT /api/admin/settings` (bulk upsert) plus full CRUD (`GET/POST/PATCH/DELETE`) on `/api/admin/{projects,services,awards,social-links}` via `src/routes/admin/listResource.ts`.
