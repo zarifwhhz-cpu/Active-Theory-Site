@@ -156,12 +156,25 @@ server {
 
 See `.env.example` for all available variables.
 
-| Variable       | Required | Description                       |
-|----------------|----------|-----------------------------------|
-| `PORT`         | Yes      | Port for the API server           |
-| `DATABASE_URL` | Yes      | PostgreSQL connection string      |
-| `BASE_PATH`    | No       | URL base path (default: `/`)      |
-| `NODE_ENV`     | No       | `development` or `production`     |
+| Variable          | Required | Description                                                         |
+|-------------------|----------|---------------------------------------------------------------------|
+| `PORT`            | Yes      | Port for the API server                                             |
+| `DATABASE_URL`    | Yes      | PostgreSQL connection string                                        |
+| `ADMIN_PASSWORD`  | Yes      | Single-admin password for the `/admin` panel                        |
+| `SESSION_SECRET`  | Yes      | HMAC secret for the admin session cookie (≥ 16 chars, random)       |
+| `BASE_PATH`       | No       | URL base path (default: `/`)                                        |
+| `NODE_ENV`        | No       | `development` or `production`                                       |
+
+### First-time admin setup
+
+After the database is up and the app is running, seed the CMS tables with the
+default content (hero/about/services/projects/awards/social links):
+
+```bash
+pnpm --filter @workspace/scripts run seed-cms
+```
+
+Then sign in at `/admin/login` with your `ADMIN_PASSWORD` to edit the site.
 
 ---
 
