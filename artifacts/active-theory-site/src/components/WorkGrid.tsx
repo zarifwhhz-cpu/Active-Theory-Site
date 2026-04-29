@@ -59,13 +59,13 @@ export function WorkGrid() {
             </div>
 
             <div className="relative z-10">
-              <h3 className="text-4xl md:text-5xl lg:text-7xl font-bold uppercase tracking-tighter leading-[0.9] transform group-hover:-translate-y-4 transition-transform duration-500 ease-[0.16,1,0.3,1]">
+              <h3 className="text-4xl md:text-5xl lg:text-7xl font-bold uppercase tracking-tighter leading-[0.9] transform group-hover:-translate-y-4 transition-transform duration-500 ease-[cubic-bezier(0.16,1,0.3,1)]">
                 {project.title}
               </h3>
             </div>
             
             {/* Minimal line indicator */}
-            <div className="absolute bottom-0 left-0 w-full h-1 bg-white scale-x-0 group-hover:scale-x-100 origin-left transition-transform duration-700 ease-[0.16,1,0.3,1] z-10" />
+            <div className="absolute bottom-0 left-0 w-full h-1 bg-white scale-x-0 group-hover:scale-x-100 origin-left transition-transform duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] z-10" />
           </motion.div>
         ))}
       </div>
