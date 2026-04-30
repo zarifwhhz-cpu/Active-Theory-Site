@@ -33,7 +33,7 @@ router.post("/auth/login", loginLimiter, (req, res) => {
     res.status(401).json({ error: "invalid_credentials" });
     return;
   }
-  issueAdminCookie(res);
+  issueAdminCookie(req, res);
   res.json({ ok: true });
 });
 

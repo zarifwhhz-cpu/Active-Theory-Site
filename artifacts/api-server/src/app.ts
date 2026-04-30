@@ -16,13 +16,27 @@ const app: Express = express();
 const isProd = process.env["NODE_ENV"] === "production";
 
 app.disable("x-powered-by");
-app.set("trust proxy", 1);
+
+// Only honor X-Forwarded-* headers when explicitly told we're behind a trusted
+// reverse proxy (nginx, Caddy, Cloudflare, etc.). Without this gate, a client
+// hitting the app directly on port 3001 could spoof X-Forwarded-For and bypass
+// the per-IP login rate limiter. Set TRUST_PROXY=1 (or a hop count) in
+// docker-compose / systemd when fronting with TLS.
+const trustProxyEnv = process.env["TRUST_PROXY"];
+if (trustProxyEnv) {
+  const asNum = Number(trustProxyEnv);
+  app.set("trust proxy", Number.isFinite(asNum) ? asNum : trustProxyEnv);
+}
 
 app.use(
   helmet({
     contentSecurityPolicy: false,
     crossOriginEmbedderPolicy: false,
     crossOriginResourcePolicy: { policy: "cross-origin" },
+    // Refuse to be framed by anyone — the admin panel never needs to be
+    // embedded, so DENY is strictly stronger than the helmet default of
+    // SAMEORIGIN against clickjacking.
+    frameguard: { action: "deny" },
     strictTransportSecurity: isProd
       ? { maxAge: 60 * 60 * 24 * 365, includeSubDomains: true }
       : false,

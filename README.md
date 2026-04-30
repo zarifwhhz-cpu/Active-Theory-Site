@@ -119,7 +119,9 @@ docker compose exec db pg_dump -U "$PGUSER" "$PGDATABASE" | gzip > backup-$(date
 
 ### 5. Put it behind HTTPS (optional but recommended)
 
-The container only speaks HTTP on port 3001. For real-world use, terminate TLS on the host with nginx + Let's Encrypt:
+The container only speaks HTTP on port 3001. The admin panel works fine over plain HTTP for initial setup — the session cookie is only marked `Secure` when the request actually arrives over HTTPS, so logging in at `http://<server>:3001/admin/login` does not silently drop your session.
+
+For real-world use, terminate TLS on the host with nginx + Let's Encrypt:
 
 ```nginx
 server {
@@ -152,7 +154,13 @@ server {
 sudo certbot --nginx -d yourdomain.com
 ```
 
-The Express app sets `trust proxy` to `1`, so `req.ip` and `Secure` cookies work correctly behind a single reverse proxy.
+When you put the app behind nginx (or any reverse proxy), add this line to your `.env` so the app trusts the proxy's `X-Forwarded-*` headers and starts marking the admin cookie `Secure` automatically:
+
+```
+TRUST_PROXY=1
+```
+
+Then `docker compose up -d` to apply. With `TRUST_PROXY` unset (the default), the per-IP login rate limiter cannot be bypassed by spoofed `X-Forwarded-For` headers from clients hitting the app directly.
 
 ---
 

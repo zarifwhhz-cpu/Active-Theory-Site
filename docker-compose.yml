@@ -12,6 +12,11 @@ services:
       DATABASE_URL: postgresql://${PGUSER:-postgres}:${PGPASSWORD:?PGPASSWORD is required in .env}@db:5432/${PGDATABASE:-tsa_site}
       ADMIN_PASSWORD: ${ADMIN_PASSWORD:?ADMIN_PASSWORD is required in .env}
       SESSION_SECRET: ${SESSION_SECRET:?SESSION_SECRET is required in .env}
+      # Set to 1 only when fronted by a trusted reverse proxy (nginx, Caddy).
+      # See .env.example for the full explanation.
+      TRUST_PROXY: ${TRUST_PROXY:-}
+      # Optional override; auto-detected from the request protocol otherwise.
+      COOKIE_SECURE: ${COOKIE_SECURE:-}
     depends_on:
       db:
         condition: service_healthy

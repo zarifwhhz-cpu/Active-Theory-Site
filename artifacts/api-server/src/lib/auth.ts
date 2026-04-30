@@ -37,14 +37,34 @@ export function verifyAdminPassword(password: string): boolean {
   return crypto.timingSafeEqual(a, b);
 }
 
-export function issueAdminCookie(res: Response) {
+/**
+ * Whether to set the `Secure` flag on the admin cookie.
+ *
+ * Deployment-aware: a `Secure` cookie is silently dropped over plain HTTP, so
+ * marking it Secure unconditionally in production breaks the documented
+ * direct-VPS flow (`http://<host>:3001/admin/login`) where TLS is added later
+ * via nginx. Resolution order:
+ *   1. `COOKIE_SECURE=true|false` env var — explicit override, always wins.
+ *   2. Otherwise, set Secure only when the inbound request was actually HTTPS
+ *      (`req.secure`, which honors `X-Forwarded-Proto` when `trust proxy` is
+ *      on). This means HTTPS deployments get Secure cookies automatically and
+ *      plain-HTTP deployments work without ceremony.
+ */
+function shouldSetSecureCookie(req: Request): boolean {
+  const override = process.env["COOKIE_SECURE"];
+  if (override === "true") return true;
+  if (override === "false") return false;
+  return req.secure;
+}
+
+export function issueAdminCookie(req: Request, res: Response) {
   const token = jwt.sign({ role: "admin" }, getSecret(), {
     expiresIn: TOKEN_TTL_SECONDS,
   });
   res.cookie(SESSION_COOKIE, token, {
     httpOnly: true,
     sameSite: "lax",
-    secure: process.env.NODE_ENV === "production",
+    secure: shouldSetSecureCookie(req),
     maxAge: TOKEN_TTL_SECONDS * 1000,
     path: "/",
   });
