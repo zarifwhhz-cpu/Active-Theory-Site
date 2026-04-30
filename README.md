@@ -1,14 +1,14 @@
-# Creative Agency
+# The Solver Agency (TSA) — Site + CMS
 
-A high-end creative agency website built with React, Vite, and Express. Dark immersive aesthetic with custom NBArchitekt typeface, particle canvas animations, and smooth scroll interactions.
+A creative-agency website with a built-in admin panel. Dark immersive aesthetic, particle canvas, smooth scroll. Every public string (hero, about, services, awards, projects, contact email, footer, social links, nav) is editable from `/admin/*` — no redeploy required.
 
 ## Tech Stack
 
-- **Frontend**: React 19, Vite, Tailwind CSS, Framer Motion
+- **Frontend**: React 19, Vite, Tailwind CSS, Framer Motion, wouter
 - **Backend**: Express 5, Node.js 22
-- **Database**: PostgreSQL + Drizzle ORM
-- **Package manager**: pnpm (monorepo)
-- **Font**: NBArchitekt (Bold, Regular, Light)
+- **Database**: PostgreSQL 16 + Drizzle ORM
+- **Auth**: single-admin password + signed JWT cookie (helmet, rate-limited login, same-origin guard)
+- **Package manager**: pnpm 10 (monorepo)
 
 ---
 
@@ -18,163 +18,161 @@ A high-end creative agency website built with React, Vite, and Express. Dark imm
 
 - [Node.js 22+](https://nodejs.org/)
 - [pnpm 10+](https://pnpm.io/installation) — `npm install -g pnpm`
-- [PostgreSQL 16+](https://www.postgresql.org/) (optional if not using backend features)
+- [PostgreSQL 16+](https://www.postgresql.org/) reachable via `DATABASE_URL`
 
 ### Setup
 
 ```bash
-# 1. Clone the repository
+# 1. Clone
 git clone https://github.com/YOUR_USERNAME/YOUR_REPO.git
 cd YOUR_REPO
 
-# 2. Copy environment variables
+# 2. Configure environment
 cp .env.example .env
-# Edit .env and fill in your values (DATABASE_URL, etc.)
+# Edit .env — set DATABASE_URL, ADMIN_PASSWORD, SESSION_SECRET
 
-# 3. Install dependencies
+# 3. Install
 pnpm install
 
-# 4. Push database schema (optional)
+# 4. Push schema + seed CMS defaults (idempotent — safe to re-run)
 pnpm --filter @workspace/db run push
+pnpm --filter @workspace/scripts run seed-cms
 
-# 5. Start development servers
-pnpm --filter @workspace/active-theory-site run dev   # Frontend → http://localhost:3000
-pnpm --filter @workspace/api-server run dev           # Backend  → http://localhost:8080/api
+# 5. Start
+pnpm --filter @workspace/active-theory-site run dev    # site
+pnpm --filter @workspace/api-server run dev            # api
 ```
+
+Open http://localhost:3000 for the site, http://localhost:3000/admin/login for the admin panel.
 
 ---
 
 ## Production Build
 
 ```bash
-# Build everything
 pnpm run build
-
 # Frontend static files → artifacts/active-theory-site/dist/public/
-# API server bundle    → artifacts/api-server/dist/index.cjs
+# API server bundle    → artifacts/api-server/dist/index.cjs (single Node bundle)
 ```
+
+The compiled API server can serve the static frontend itself — set `PUBLIC_DIR` to the path of `dist/public/` and one Node process will handle both the site and `/api/*`.
 
 ---
 
-## Deployment
+## Deploy on a VPS (recommended)
 
-### Option 1 — Docker (recommended)
+This is the simplest path: one VPS, Docker installed, two commands.
+
+### 1. Get the code on the server
 
 ```bash
-# Copy and fill in environment variables
+ssh you@your-vps
+git clone https://github.com/YOUR_USERNAME/YOUR_REPO.git
+cd YOUR_REPO
+```
+
+### 2. Configure secrets
+
+```bash
 cp .env.example .env
-
-# Build and run with Docker Compose (includes PostgreSQL)
-docker compose up --build
+# Open .env and set, at minimum:
+#   ADMIN_PASSWORD   = a long password you'll use to log into /admin
+#   SESSION_SECRET   = at least 32 random bytes (e.g. `openssl rand -hex 32`)
+#   PGPASSWORD       = a strong Postgres password
+# Optional: APP_PORT (default 3001), PGDATABASE (default tsa_site)
 ```
 
-The app will be available at `http://localhost:3001`.
+`.env` is in `.gitignore` and excluded from the Docker build context — it stays on your server only.
 
-To run without Docker Compose (external DB):
+### 3. Bring it up
 
 ```bash
-docker build -t creative-agency .
-docker run -p 3001:3001 \
-  -e DATABASE_URL=postgresql://user:pass@host:5432/db \
-  creative-agency
+docker compose up --build -d
 ```
 
----
+What happens on first boot:
 
-### Option 2 — Vercel (frontend only)
+1. Postgres 16 starts in a container with a persistent volume.
+2. The app container waits for Postgres to accept connections.
+3. Drizzle pushes the schema (creates the CMS tables).
+4. The seed runs once, populating defaults for hero / projects / services / awards / social links. It's idempotent — restarts won't overwrite your edits.
+5. The Express server starts, serves the static site, and exposes `/api/*` on port `3001`.
 
-The frontend is a pure static SPA that can be deployed to Vercel with zero config:
+Visit `http://<your-vps>:3001/` for the site and `http://<your-vps>:3001/admin/login` to sign in with `ADMIN_PASSWORD`.
 
-1. Import the repository in the [Vercel dashboard](https://vercel.com/new)
-2. Set the **root directory** to `artifacts/active-theory-site`
-3. Set build command: `pnpm run build`
-4. Set output directory: `dist/public`
-5. Add environment variables: `BASE_PATH=/`
-6. Deploy
-
----
-
-### Option 3 — Railway
-
-Railway supports monorepos and can host both the frontend and backend:
-
-1. Create a new project at [railway.app](https://railway.app)
-2. Connect your GitHub repository
-3. Add a **PostgreSQL** plugin
-4. Add a service for the API:
-   - Root directory: `artifacts/api-server`
-   - Build command: `pnpm run build`
-   - Start command: `node dist/index.cjs`
-5. Add a service for the frontend (or deploy static via Vercel above)
-6. Set environment variables from `.env.example`
-
----
-
-### Option 4 — Self-hosted (VPS / bare metal)
+### 4. Day-2 commands
 
 ```bash
-# On your server
-git clone YOUR_REPO && cd YOUR_REPO
-cp .env.example .env  # fill in values
-pnpm install --frozen-lockfile --prod
-pnpm run build
-
-# Serve the frontend with nginx (example config below)
-# Run the API server with pm2
-npm install -g pm2
-PORT=3001 pm2 start artifacts/api-server/dist/index.cjs --name api
-pm2 save && pm2 startup
+docker compose logs -f app          # tail structured JSON request + error logs
+docker compose ps                   # health status
+docker compose restart app          # safe restart (graceful SIGTERM)
+docker compose pull && docker compose up -d --build   # update after `git pull`
+docker compose down                 # stop everything (data preserved in the volume)
+docker compose down -v              # ⚠ also wipes the Postgres volume
 ```
 
-**Nginx config example:**
+CMS data lives in the named Docker volume `postgres_data`. To back it up:
+
+```bash
+docker compose exec db pg_dump -U "$PGUSER" "$PGDATABASE" | gzip > backup-$(date +%F).sql.gz
+```
+
+### 5. Put it behind HTTPS (optional but recommended)
+
+The container only speaks HTTP on port 3001. For real-world use, terminate TLS on the host with nginx + Let's Encrypt:
 
 ```nginx
 server {
     listen 80;
     server_name yourdomain.com;
+    return 301 https://$host$request_uri;
+}
 
-    # Frontend static files
-    root /var/www/creative-agency/artifacts/active-theory-site/dist/public;
-    index index.html;
+server {
+    listen 443 ssl http2;
+    server_name yourdomain.com;
+
+    ssl_certificate     /etc/letsencrypt/live/yourdomain.com/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/yourdomain.com/privkey.pem;
+
+    client_max_body_size 1m;
 
     location / {
-        try_files $uri $uri/ /index.html;
-    }
-
-    # API proxy
-    location /api {
-        proxy_pass http://localhost:3001;
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
+        proxy_pass         http://127.0.0.1:3001;
+        proxy_http_version 1.1;
+        proxy_set_header   Host              $host;
+        proxy_set_header   X-Real-IP         $remote_addr;
+        proxy_set_header   X-Forwarded-For   $proxy_add_x_forwarded_for;
+        proxy_set_header   X-Forwarded-Proto $scheme;
     }
 }
 ```
+
+```bash
+sudo certbot --nginx -d yourdomain.com
+```
+
+The Express app sets `trust proxy` to `1`, so `req.ip` and `Secure` cookies work correctly behind a single reverse proxy.
 
 ---
 
 ## Environment Variables
 
-See `.env.example` for all available variables.
+| Variable          | Required | Description                                                            |
+|-------------------|----------|------------------------------------------------------------------------|
+| `ADMIN_PASSWORD`  | Yes      | Password for the single admin account at `/admin/login`                |
+| `SESSION_SECRET`  | Yes      | HMAC secret for the admin session cookie (≥ 32 random bytes)           |
+| `DATABASE_URL`    | Yes¹     | PostgreSQL connection string                                           |
+| `PGUSER`          | Compose  | Postgres user for the bundled DB container (default `postgres`)        |
+| `PGPASSWORD`      | Compose  | Postgres password for the bundled DB container                         |
+| `PGDATABASE`      | Compose  | Postgres database name (default `tsa_site`)                            |
+| `APP_PORT`        | Compose  | Host port to expose the app on (default `3001`)                        |
+| `PORT`            | Yes      | Internal listen port (default `3001` in container)                     |
+| `PUBLIC_DIR`      | Prod     | Absolute path to built frontend; set to `/app/public` in container     |
+| `NODE_ENV`        | No       | `development` or `production`                                          |
+| `BASE_PATH`       | No       | URL base path for the Vite build (default `/`)                         |
 
-| Variable          | Required | Description                                                         |
-|-------------------|----------|---------------------------------------------------------------------|
-| `PORT`            | Yes      | Port for the API server                                             |
-| `DATABASE_URL`    | Yes      | PostgreSQL connection string                                        |
-| `ADMIN_PASSWORD`  | Yes      | Single-admin password for the `/admin` panel                        |
-| `SESSION_SECRET`  | Yes      | HMAC secret for the admin session cookie (≥ 16 chars, random)       |
-| `BASE_PATH`       | No       | URL base path (default: `/`)                                        |
-| `NODE_ENV`        | No       | `development` or `production`                                       |
-
-### First-time admin setup
-
-After the database is up and the app is running, seed the CMS tables with the
-default content (hero/about/services/projects/awards/social links):
-
-```bash
-pnpm --filter @workspace/scripts run seed-cms
-```
-
-Then sign in at `/admin/login` with your `ADMIN_PASSWORD` to edit the site.
+¹ `DATABASE_URL` is constructed automatically inside `docker-compose.yml` from `PGUSER` / `PGPASSWORD` / `PGDATABASE`. You only need to set it directly when running outside Docker.
 
 ---
 
@@ -182,15 +180,18 @@ Then sign in at `/admin/login` with your `ADMIN_PASSWORD` to edit the site.
 
 ```
 ├── artifacts/
-│   ├── active-theory-site/   # React + Vite frontend
-│   └── api-server/           # Express API server
+│   ├── active-theory-site/   # React + Vite frontend (public site + /admin)
+│   └── api-server/           # Express API: /api/content, /api/auth, /api/admin
 ├── lib/
 │   ├── api-spec/             # OpenAPI spec + codegen config
 │   ├── api-client-react/     # Generated React Query hooks
 │   ├── api-zod/              # Generated Zod schemas
-│   └── db/                   # Drizzle ORM schema + DB client
-├── docker-compose.yml
-├── Dockerfile
+│   └── db/                   # Drizzle schema + DB client (PostgreSQL)
+├── scripts/                  # First-boot CMS seed
+├── Dockerfile                # Multi-stage build → single production image
+├── docker-compose.yml        # App + Postgres for VPS
+├── docker-entrypoint.sh      # Wait for DB → push schema → seed → start server
+├── wait-for-db.cjs           # Postgres readiness check
 └── .env.example
 ```
 

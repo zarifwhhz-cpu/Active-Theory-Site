@@ -125,3 +125,10 @@ React + Vite single-page app — the Active Theory marketing site **plus** an in
 - HTML in settings: `about_paragraph` is the only key allowed to contain HTML. On write, the API runs the value through `sanitize-html` with an allowlist of `<strong>`, `<em>`, `<br>` only — script tags, event handlers, and other tags are stripped server-side, so a stored XSS is not possible even if the admin pastes one.
 - Public read endpoint: `GET /api/content` returns `{settings, projects, services, awards, socialLinks}` in one call.
 - Admin write endpoints: `PUT /api/admin/settings` (bulk upsert) plus full CRUD (`GET/POST/PATCH/DELETE`) on `/api/admin/{projects,services,awards,social-links}` via `src/routes/admin/listResource.ts`.
+
+### VPS deployment
+- The project ships with a multi-stage `Dockerfile`, `docker-compose.yml` (app + Postgres 16), `docker-entrypoint.sh`, and `wait-for-db.cjs`. `docker compose up --build -d` brings everything up on a single VPS — see `README.md` for the full flow.
+- The compiled API server (`artifacts/api-server/dist/index.cjs`) serves both `/api/*` and the static frontend in production via `express.static` when `PUBLIC_DIR` is set. There is no separate static-file server — the obsolete `docker-serve.js` was removed.
+- Production hardening lives in `artifacts/api-server/src/app.ts`: `helmet` (HSTS/X-Frame-Options/no-sniff/referrer-policy; CSP intentionally off because the CMS image URLs are user-supplied), structured JSON request logger, global error handler that suppresses stack traces in 5xx responses, and `trust proxy = 1` so the rate limiter and `Secure` cookies work behind nginx.
+- `artifacts/api-server/src/index.ts` handles `SIGTERM`/`SIGINT` with a 10s force-exit watchdog, parallel `server.close()` + `pool.end()`, and logs uncaught exceptions / unhandled rejections.
+- The Docker entrypoint runs `drizzle-kit push` then `seed-cms` (idempotent) before exec'ing the bundled server, so a fresh VPS comes up with working public content and a usable admin login.

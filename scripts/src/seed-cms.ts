@@ -2,8 +2,8 @@ import { db, siteSettingsTable, projectsTable, servicesTable, awardsTable, socia
 import { sql } from "drizzle-orm";
 
 const SETTINGS: Record<string, string> = {
-  brand_short: "AT",
-  brand_full: "Active Theory",
+  brand_short: "TSA",
+  brand_full: "The Solver Agency",
   hero_line1: "WE BLEND STORY,",
   hero_line2: "ART & TECHNOLOGY",
   hero_subtitle:

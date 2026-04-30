@@ -1,34 +1,46 @@
-version: "3.9"
-
 services:
   app:
     build: .
+    image: tsa-site:latest
+    restart: unless-stopped
     ports:
-      - "3001:3001"
+      - "${APP_PORT:-3001}:3001"
     environment:
-      - NODE_ENV=production
-      - PORT=3001
-      - DATABASE_URL=${DATABASE_URL}
+      NODE_ENV: production
+      PORT: 3001
+      PUBLIC_DIR: /app/public
+      DATABASE_URL: postgresql://${PGUSER:-postgres}:${PGPASSWORD:?PGPASSWORD is required in .env}@db:5432/${PGDATABASE:-tsa_site}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:?ADMIN_PASSWORD is required in .env}
+      SESSION_SECRET: ${SESSION_SECRET:?SESSION_SECRET is required in .env}
     depends_on:
       db:
         condition: service_healthy
-    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3001/api/healthz').then(r=>{if(!r.ok)process.exit(1)}).catch(()=>process.exit(1))"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
 
   db:
     image: postgres:16-alpine
+    restart: unless-stopped
     environment:
-      POSTGRES_DB: creative_agency
+      POSTGRES_DB: ${PGDATABASE:-tsa_site}
       POSTGRES_USER: ${PGUSER:-postgres}
-      POSTGRES_PASSWORD: ${PGPASSWORD:-postgres}
+      POSTGRES_PASSWORD: ${PGPASSWORD:?PGPASSWORD is required in .env}
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    # Bind only to localhost so Postgres is not exposed to the public internet.
+    # Remove this line if you need to reach the DB from another host.
     ports:
-      - "5432:5432"
+      - "127.0.0.1:5432:5432"
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${PGUSER:-postgres}"]
+      test:
+        ["CMD-SHELL", "pg_isready -U ${PGUSER:-postgres} -d ${PGDATABASE:-tsa_site}"]
       interval: 5s
       timeout: 5s
-      retries: 5
+      retries: 10
 
 volumes:
   postgres_data:

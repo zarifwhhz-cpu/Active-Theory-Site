@@ -1,11 +1,12 @@
 ###############################################################################
-# Stage 1 – Install all workspace dependencies
+# Stage 1 — Install all workspace dependencies (dev + prod)
 ###############################################################################
 FROM node:22-alpine AS deps
 
 WORKDIR /app
 
-RUN npm install -g pnpm
+RUN apk add --no-cache libc6-compat \
+ && npm install -g pnpm@10
 
 COPY package.json pnpm-workspace.yaml pnpm-lock.yaml .npmrc ./
 COPY lib/api-spec/package.json            lib/api-spec/
@@ -19,7 +20,7 @@ COPY artifacts/active-theory-site/package.json  artifacts/active-theory-site/
 RUN pnpm install --frozen-lockfile
 
 ###############################################################################
-# Stage 2 – Build the frontend (Vite static files)
+# Stage 2 — Build the frontend (Vite static files)
 ###############################################################################
 FROM deps AS build-frontend
 
@@ -27,12 +28,11 @@ COPY . .
 
 ENV NODE_ENV=production
 ENV BASE_PATH=/
-ENV PORT=3000
 
 RUN pnpm --filter @workspace/active-theory-site run build
 
 ###############################################################################
-# Stage 3 – Build the API server (esbuild bundle)
+# Stage 3 — Build the API server (esbuild bundle)
 ###############################################################################
 FROM deps AS build-api
 
@@ -43,32 +43,55 @@ ENV NODE_ENV=production
 RUN pnpm --filter @workspace/api-server run build
 
 ###############################################################################
-# Stage 4 – Production image
+# Stage 4 — Production image
 ###############################################################################
 FROM node:22-alpine AS production
 
 WORKDIR /app
 
-RUN npm install -g pnpm
+RUN apk add --no-cache tini libc6-compat \
+ && npm install -g pnpm@10
 
-# Copy workspace manifests so pnpm can resolve prod deps
+# Workspace manifests + lock so pnpm can install drizzle-kit + tsx for the
+# entrypoint to push schema and seed the CMS.
 COPY package.json pnpm-workspace.yaml pnpm-lock.yaml .npmrc ./
-COPY lib/db/package.json lib/db/
-COPY artifacts/api-server/package.json artifacts/api-server/
+COPY lib/api-spec/package.json            lib/api-spec/
+COPY lib/api-client-react/package.json    lib/api-client-react/
+COPY lib/api-zod/package.json             lib/api-zod/
+COPY lib/db/package.json                  lib/db/
+COPY scripts/package.json                 scripts/
+COPY artifacts/api-server/package.json    artifacts/api-server/
 
-# Install production deps only
-RUN pnpm install --frozen-lockfile --prod
+# Ignore the `preinstall` (which would refuse without pnpm UA in some shells)
+# and skip the active-theory-site workspace entirely — its deps are baked into
+# the static bundle already and we don't need its node_modules at runtime.
+RUN pnpm install --frozen-lockfile \
+      --filter "@workspace/db" \
+      --filter "@workspace/scripts" \
+      --filter "@workspace/api-server"
 
-# Copy built assets
-COPY --from=build-api      /app/artifacts/api-server/dist     artifacts/api-server/dist
-COPY --from=build-frontend /app/artifacts/active-theory-site/dist/public  public
+# Source files needed at runtime by the entrypoint:
+#   - lib/db/src             → drizzle schema (used by seed + push)
+#   - lib/db/drizzle.config.ts
+#   - scripts/src/seed-cms.ts
+COPY lib/db                lib/db
+COPY scripts/src           scripts/src
+COPY scripts/tsconfig.json scripts/tsconfig.json
 
-# Serve the frontend static files from the Express server
-COPY docker-serve.js .
+# Built artifacts
+COPY --from=build-api      /app/artifacts/api-server/dist                  artifacts/api-server/dist
+COPY --from=build-frontend /app/artifacts/active-theory-site/dist/public   public
 
-EXPOSE 3001
+# Entrypoint scripts
+COPY docker-entrypoint.sh ./
+COPY wait-for-db.cjs ./
+RUN chmod +x docker-entrypoint.sh
 
 ENV NODE_ENV=production
 ENV PORT=3001
+ENV PUBLIC_DIR=/app/public
 
-CMD ["node", "docker-serve.js"]
+EXPOSE 3001
+
+# tini handles PID 1 reaping + signal forwarding so SIGTERM reaches Node.
+ENTRYPOINT ["/sbin/tini", "--", "/app/docker-entrypoint.sh"]
