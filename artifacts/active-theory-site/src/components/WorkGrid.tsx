@@ -43,7 +43,7 @@ export function WorkGrid() {
             viewport={{ once: true }}
             transition={{ duration: 0.8, delay: i * 0.1 }}
             data-cursor-hover="true"
-            className="group relative bg-[#0a0a0a] p-8 md:p-16 aspect-square flex flex-col justify-between overflow-hidden cursor-pointer"
+            className="group relative bg-[#0a0a0a] p-6 md:p-16 aspect-square flex flex-col justify-between overflow-hidden cursor-pointer"
           >
             {/* Background Image Reveal */}
             <div className="absolute inset-0 z-0">
@@ -69,7 +69,7 @@ export function WorkGrid() {
             </div>
 
             <div className="relative z-10">
-              <h3 className="text-4xl md:text-5xl lg:text-7xl font-bold uppercase tracking-tighter leading-[0.9] transform group-hover:-translate-y-4 transition-transform duration-500 ease-[cubic-bezier(0.16,1,0.3,1)]">
+              <h3 className="text-3xl sm:text-4xl md:text-5xl lg:text-7xl font-bold uppercase tracking-tighter leading-[0.9] break-words transform group-hover:-translate-y-4 transition-transform duration-500 ease-[cubic-bezier(0.16,1,0.3,1)]">
                 {project.title}
               </h3>
             </div>

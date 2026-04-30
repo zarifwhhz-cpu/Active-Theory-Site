@@ -22,7 +22,7 @@ export function Navbar() {
         {brand}
       </Link>
 
-      <div className="flex gap-8 text-sm md:text-base font-light tracking-wide uppercase">
+      <div className="flex gap-4 sm:gap-8 text-xs sm:text-sm md:text-base font-light tracking-wide uppercase">
         <a href="#work" className="relative group overflow-hidden">
           <span className="inline-block transition-transform duration-300 group-hover:-translate-y-full">
             {workLabel}

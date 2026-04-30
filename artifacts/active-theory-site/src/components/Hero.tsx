@@ -35,12 +35,12 @@ export function Hero() {
         variants={container}
         initial="hidden"
         animate="show"
-        className="z-10 mt-20"
+        className="z-10 mt-20 w-full"
       >
         <div className="overflow-hidden">
           <motion.h1
             variants={item}
-            className="text-[12vw] sm:text-[10vw] md:text-[8vw] lg:text-[7vw] font-bold leading-[0.85] tracking-tighter uppercase whitespace-nowrap"
+            className="text-[10vw] sm:text-[10vw] md:text-[8vw] lg:text-[7vw] font-bold leading-[0.9] md:leading-[0.85] tracking-tighter uppercase break-words"
           >
             {line1}
           </motion.h1>
@@ -48,16 +48,16 @@ export function Hero() {
         <div className="overflow-hidden">
           <motion.h1
             variants={item}
-            className="text-[12vw] sm:text-[10vw] md:text-[8vw] lg:text-[7vw] font-bold leading-[0.85] tracking-tighter uppercase whitespace-nowrap"
+            className="text-[10vw] sm:text-[10vw] md:text-[8vw] lg:text-[7vw] font-bold leading-[0.9] md:leading-[0.85] tracking-tighter uppercase break-words"
           >
             {line2}
           </motion.h1>
         </div>
 
-        <div className="overflow-hidden mt-12">
+        <div className="overflow-hidden mt-8 md:mt-12">
           <motion.p
             variants={item}
-            className="max-w-md text-sm md:text-base font-light text-white/60 tracking-wide leading-relaxed uppercase"
+            className="max-w-md text-xs md:text-base font-light text-white/60 tracking-wide leading-relaxed uppercase"
           >
             {subtitle}
           </motion.p>
@@ -69,7 +69,7 @@ export function Hero() {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ delay: 2, duration: 1 }}
-        className="absolute bottom-12 left-6 md:left-12 flex items-center gap-4 text-xs font-light tracking-widest uppercase opacity-50"
+        className="absolute bottom-8 md:bottom-12 left-6 md:left-12 flex items-center gap-4 text-xs font-light tracking-widest uppercase opacity-50"
       >
         <span>Scroll</span>
         <div className="w-12 h-px bg-white/50 relative overflow-hidden">

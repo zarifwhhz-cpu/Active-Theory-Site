@@ -31,15 +31,15 @@ export function Services() {
             viewport={{ once: true }}
             transition={{ duration: 0.6, delay: i * 0.1 }}
             data-cursor-hover="true"
-            className="border-b border-white/10 py-10 md:py-16 px-6 md:px-12 flex justify-between items-center group hover:bg-white hover:text-black transition-colors duration-500 cursor-pointer"
+            className="border-b border-white/10 py-8 md:py-16 px-6 md:px-12 flex justify-between items-center gap-4 group hover:bg-white hover:text-black transition-colors duration-500 cursor-pointer"
           >
-            <h3 className="text-3xl md:text-5xl lg:text-7xl uppercase font-light tracking-tighter">
-              <sup className="text-sm md:text-xl font-normal mr-4 md:mr-8 opacity-50 group-hover:opacity-100">
+            <h3 className="text-2xl sm:text-3xl md:text-5xl lg:text-7xl uppercase font-light tracking-tighter min-w-0 break-words">
+              <sup className="text-xs sm:text-sm md:text-xl font-normal mr-2 sm:mr-4 md:mr-8 opacity-50 group-hover:opacity-100">
                 {String(i + 1).padStart(2, "0")}
               </sup>
               {service.name}
             </h3>
-            <ArrowRight className="w-8 h-8 md:w-16 md:h-16 opacity-0 group-hover:opacity-100 transform -translate-x-8 group-hover:translate-x-0 transition-all duration-500 ease-out" />
+            <ArrowRight className="w-6 h-6 md:w-16 md:h-16 shrink-0 opacity-0 group-hover:opacity-100 transform -translate-x-8 group-hover:translate-x-0 transition-all duration-500 ease-out" />
           </motion.div>
         ))}
       </div>
