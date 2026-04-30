@@ -50,7 +50,7 @@ export function WorkGrid() {
               <img
                 src={project.imageUrl}
                 alt={project.title}
-                className="w-full h-full object-cover opacity-0 group-hover:opacity-40 transition-opacity duration-700 ease-out grayscale group-hover:grayscale-0"
+                className="w-full h-full object-cover opacity-50 md:opacity-0 md:group-hover:opacity-40 transition-opacity duration-700 ease-out grayscale-0 md:grayscale md:group-hover:grayscale-0"
               />
             </div>
 
